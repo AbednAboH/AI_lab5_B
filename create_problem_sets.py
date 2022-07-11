@@ -3,6 +3,9 @@ import random
 from fitness_functions import fitness_selector
 from mutations import mutations
 import math
+from neural_network import NeuralNet
+from sklearn.neural_network import MLPClassifier
+
 import numpy
 
 
@@ -104,11 +107,17 @@ class DNA(Agent):
         return ''.join(self.object + other.object)
 
 
-class RPS(DNA):
+class Glass_NN_agent(DNA):
     def __init__(self):
-        DNA.__init__(self)
-        self.robots_score=[]
-    def character_creation(self, target_size):
-        return random.randint(0, 2)
-
-
+        super(Glass_NN_agent, self).__init__()
+        self.NeuNet=NeuralNet()
+    def get_Network(self):
+        return self.NeuNet.network
+    def update_network_hyper(self):
+        # self.NeuNet.network=
+        pass
+    def create_object(self, target_size, target, options=None):
+        activation='logistic' if random.randint(0,2) else 'relu'
+        depth=random.randint(1,10)
+        self.NeuNet.network=MLPClassifier(activation=activation,max_iter=10000,random_state=1,hidden_layer_sizes=(depth,))
+        self.NeuNet.train_network()

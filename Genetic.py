@@ -47,7 +47,6 @@ class C_genetic_algorithem(algortithem):
 
     def init_population(self):
         super(C_genetic_algorithem, self).init_population()
-        self.init_dummies()
         self.fitness()
         self.population = self.sort_by_fitness(self.population)
         self.solution = self.population[0]
@@ -108,63 +107,13 @@ class C_genetic_algorithem(algortithem):
 
     # this function returns an array for each spiecy , how many are elite
     # so that we can choose the appropriate ammount of genes from speciy and so that the population size stayes the same
-    def Update_Org_fit(self, i, organizm_i_new):
-        new_organizm = self.prob_spec()
-        new_organizm.object = organizm_i_new
-        self.population[i] = self.population[i] if new_organizm.fitness < self.population[i].fitness else new_organizm
-
-    def select_XJ(self, i):
-        organizm = random.choice([random.randint(0, i), random.randint(i + 1, len(self.population) - 1) if i != len(
-            self.population) - 1 else random.randint(0, i)])
-        organizm_i, organizm_j = self.population[i].object, self.population[organizm].object
-        return organizm, organizm_i, organizm_j
-
-    def mutualism(self):
-        print("------Mutualism phase-----------")
-        for i in range(len(self.population)):
-            organizm, organizm_i, organizm_j = self.select_XJ(i)
-            BF = [random.randint(1, 2), random.randint(1, 2)]
-            Mutual_vectors = [(x_i + x_j) // 2 for x_i, x_j in zip(organizm_i, organizm_j)]
-            organizmz = [organizm_i, organizm_j]
-            best = self.solution.object
-            index_to_update = [i, organizm]
-            for org in range(2):
-                zipped = zip(organizmz[org], Mutual_vectors)
-                item = [(x_i + int(random.uniform(0, 1) * abs(best[index] - mv * BF[org]))) % 3 for index, (x_i, mv) in
-                        enumerate(zipped)]
-                self.Update_Org_fit(index_to_update[org], item)
-
-    def communalism(self, esize, birth_count):
-        print("------Communalism phase-----------")
-
-        for i in range(esize, esize + birth_count):
-            organizm, organizm_i, organizm_j = self.select_XJ(i)
-            best = self.solution.object
-            zipped = zip(organizm_i, organizm_j, best)
-            organizm_i_new = [x_i + random.uniform(-1, 1) * abs(x_best - x_j) for x_i, x_j, x_best in zipped]
-            organizm_i_new = [int(xi) % 3 for xi in organizm_i_new]
-            self.Update_Org_fit(i, organizm_i_new)
-
-    def parasitism(self, esize, birth_count, gen):
-        print("------Parasitism faze-----------")
-        for i in range(esize, esize + birth_count):
-            mutation = GA_MUTATION if (
-                    (not self.hyper_mutaion) and self.trigger_mutation) \
-                else maxsize * adaptive_decrease(0.75, 1, gen)
-            organizm, organizm_i, organizm_j = self.select_XJ(i)
-            Parasite_vector = [organizm_i[index] if random.uniform(0, 1) >= mutation else
-                               random.randint(0, 2) for index in range(len(organizm_i))]
-            self.Update_Org_fit(i, Parasite_vector)
-           # print(self.population[i].fitness)
 
     def mate(self, gen, fitnesstype, mut_type, prob_spec, population):
         esize = self.serviving_genes(gen, population)
         self.cross(esize, gen, population, len(population) - esize, fitnesstype, mut_type, prob_spec)
 
     def cross(self, esize, gen, population, birth_count, fitnesstype, mut_type, prob_spec):
-        self.mutualism()
-        self.communalism(esize, birth_count)
-        self.parasitism(esize, birth_count, gen)
+
     def algo(self, i):
         self.fitness_array = self.propablities_rank_based(len(self.population) - 1, self.population)
         self.mate(i, 0, 0, self.prob_spec, self.population)  # mate the population together
