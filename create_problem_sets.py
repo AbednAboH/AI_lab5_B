@@ -110,14 +110,20 @@ class DNA(Agent):
 class Glass_NN_agent(DNA):
     def __init__(self):
         super(Glass_NN_agent, self).__init__()
-        self.NeuNet=NeuralNet()
+        self.NeuNet = NeuralNet()
+
     def get_Network(self):
         return self.NeuNet.network
-    def update_network_hyper(self):
-        # self.NeuNet.network=
-        pass
     def create_object(self, target_size, target, options=None):
-        activation='logistic' if random.randint(0,2) else 'relu'
-        depth=random.randint(1,10)
-        self.NeuNet.network=MLPClassifier(activation=activation,max_iter=10000,random_state=1,hidden_layer_sizes=(depth,))
+        activation = 'relu' if random.randint(0, 2) else 'relu'
+        solver = 'adam' if random.randint(0, 2) else 'sgd'
+        depth =random.randint(10,100)
+        self.NeuNet.network = MLPClassifier(activation=activation, solver=solver, alpha=1)
         self.NeuNet.train_network()
+
+    def __str__(self):
+
+        _, report = self.NeuNet.test_network()
+        _, report2 = self.NeuNet.show_stats()
+
+        return report+report2

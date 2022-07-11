@@ -7,7 +7,6 @@ from sys import maxsize
 import numpy
 import math
 
-
 """ to generalize the problem we created a class that given a population calculates the solution"""
 
 
@@ -19,7 +18,7 @@ class C_genetic_algorithem(algortithem):
     Distance_hash = {}
 
     def __init__(self, target, tar_size, pop_size, problem_spec, problem_spec2, crosstype, fitnesstype, selection,
-                 serviving_mechanizem, mutation, gene_dist, max_iter,check, mutation_probability=0):
+                 serviving_mechanizem, mutation, gene_dist, max_iter, check, mutation_probability=0):
         algortithem.__init__(self, target, tar_size, pop_size, problem_spec, fitnesstype, selection, max_iter)
         self.cross_func = cross_types().select
         self.cross_type = crosstype
@@ -32,10 +31,9 @@ class C_genetic_algorithem(algortithem):
         self.trigger_mutation = False
         self.elite_rate = GA_ELITRATE
         self.problem_spec2 = problem_spec2
-        self.check_experts=check
+        self.check_experts = check
         self.options = self.create_options()
-        temp = problem_spec2()
-        temp.create_object(self.target_size, self.target, self.options)
+
         # todo: add options to send to problem creation , we don't have to create it over and over again'
 
     def create_options(self):
@@ -52,10 +50,16 @@ class C_genetic_algorithem(algortithem):
         self.solution = self.population[0]
         self.output.append(self.solution.fitness)
         self.iter.append(0)
-        print(self.solution.fitness)
+
+    def individual_fitness(self, citizen):
+        confusion_mat, _ = citizen.NeuNet.test_network()
+        citizen.fitness = confusion_mat.sum() / confusion_mat.trace()
+        return citizen.fitness
 
     def fitness(self):
-        pass
+        for index, pop in enumerate(self.population):
+            self.population[index].fitness = self.individual_fitness(pop)
+
     def propablities_rank_based(self, pop_size, population):
 
         # depending on the selection scheme get propabilities from ranking system !
@@ -111,16 +115,70 @@ class C_genetic_algorithem(algortithem):
     def mate(self, gen, fitnesstype, mut_type, prob_spec, population):
         esize = self.serviving_genes(gen, population)
         self.cross(esize, gen, population, len(population) - esize, fitnesstype, mut_type, prob_spec)
+    def mutate2(self,member):
+        ipos = random.randint(0, len(member) - 1)
+        delta = random.randrange(0,1)
+        member= member[:ipos] + [delta] + member[ipos + 1:]
+        return member
+    def flatten(self, coefs):
+
+        arr = coefs[0]
+        for i in range(1, len(coefs)):
+            arr = numpy.array(arr).ravel()
+            new = numpy.array(coefs[i]).ravel()
+            arr = numpy.concatenate((arr, new), dtype="float")
+        arr.ravel()
+        return [float(x) for x in arr]
+
+    def unflaaten(self, coefs, input):
+        initial_shape = len(coefs)
+        new_array = []
+        start = 0
+        for i in range(initial_shape):
+            shape = numpy.shape(coefs[i])
+            temp = numpy.array(input[start:start + shape[0] * shape[1]])
+
+            temp = temp.reshape(shape[0], shape[1])
+            new_array.append(temp)
+            start += shape[0] * shape[1]
+        return new_array
 
     def cross(self, esize, gen, population, birth_count, fitnesstype, mut_type, prob_spec):
+        for i in range(esize, esize + birth_count):
+            self.buffer[i] = prob_spec()
+            citizen1 = prob_spec()
+            citizen2 = prob_spec()
+            # condition = True
+            i1, i2 = self.selection_methods.method[self.selection](population, self.fitness_array)
+            # counter+=1
+            io1 = self.flatten(i1.NeuNet.network.coefs_)
+            io2 = self.flatten(i2.NeuNet.network.coefs_)
+            citizen1_neurons, citizen2_neurons = self.cross_func[
+                self.cross_type if not fitnesstype else CROSS1](io1, io2)
+            citizen1.create_object(0, 0)
+            citizen2.create_object(0, 0)
+            mutation = GA_MUTATION
+            if random.randint(0, maxsize) < mutation:
+                citizen1_neurons=self.mutate2(citizen1_neurons)
+                citizen2_neurons=self.mutate2(citizen2_neurons)
+            citizen1.NeuNet.network.coefs_ = self.unflaaten(i1.NeuNet.network.coefs_, citizen1_neurons)
+            citizen2.NeuNet.network.coefs_ = self.unflaaten(i2.NeuNet.network.coefs_, citizen2_neurons)
+            self.individual_fitness(citizen1)
+            self.individual_fitness(citizen2)
+            # print("after",citizen1.fitness,citizen2.fitness)
+            winner=citizen1 if citizen1.fitness < citizen2.fitness else citizen2
+
+            self.buffer[i] = winner if winner.fitness < self.population[i].fitness else self.population[i]
 
     def algo(self, i):
         self.fitness_array = self.propablities_rank_based(len(self.population) - 1, self.population)
         self.mate(i, 0, 0, self.prob_spec, self.population)  # mate the population together
+        self.buffer, self.population = self.population, self.buffer
         self.population = self.sort_by_fitness(self.population)
         self.solution = self.population[0]
-    def stopage(self,i):
-        return i==self.iteration or self.solution.fitness==1
+
+    def stopage(self, i):
+        return i == self.iteration or self.solution.fitness == 1
 
 
 linear_scale = lambda x: x[0] * x[1] + x[2]

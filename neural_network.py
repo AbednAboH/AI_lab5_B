@@ -1,12 +1,11 @@
+import warnings
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report, confusion_matrix
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.model_selection import train_test_split
-
 import numpy
-
-
+warnings.filterwarnings('ignore')
 def read_data():
     CSV_file = pd.read_csv("inputs\glass.data")
     ID = LabelEncoder().fit_transform(CSV_file.values[:, -1])
@@ -35,15 +34,14 @@ class NeuralNet:
         self.test_ID = (Data[1], Data[3])
         self.function = softmax
         self.num_logis = logis_num
-        self.network = MLPClassifier(max_iter=10000)
-
+        self.network = MLPClassifier(activation="relu")
     def train_network(self):
         self.network.fit(self.training_ID[0], self.training_ID[1])
         predict_id = self.function(self.network.predict_proba(self.test_ID[0]))
         id_with_test = zip(self.test_ID[1], predict_id)
         micro, macro = self.micro_macro(id_with_test, 6)
         self.test_network()
-        return micro / len(self.test_ID[0]), macro / self.num_logis
+        return micro / 43, macro / self.num_logis
 
     def test_network(self):
         predict_test = self.network.predict(self.test_ID[0])
@@ -52,7 +50,7 @@ class NeuralNet:
         return conf, report
 
     def show_stats(self):
-        predict_train = self.network.predict(self.training_ID[1])
+        predict_train = self.network.predict(self.training_ID[0])
         conf = confusion_matrix(self.training_ID[1], predict_train)
         report = classification_report(self.training_ID[1], predict_train)
         return conf, report
@@ -66,5 +64,5 @@ class NeuralNet:
             micro = micro + 1 if predict == id else micro
             logits[predict] += 1
         new_set = zip(logits, t_logits)
-        macro = sum([t_log / log for log, t_log in new_set])
+        macro = sum([t_log / log if log!=0 else 0 for log, t_log in new_set])
         return micro, macro

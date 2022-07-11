@@ -16,8 +16,8 @@ class selection_methods:
     def random_selection(self, population, fitness_array, k=10):
         # select random places from half the population
         popsize = len(population)
-        i1 = randint(0, popsize // 2)
-        i2 = randint(0, popsize // 2)
+        i1 = randint(0, int(popsize *0.1))
+        i2 = randint(0,  int(popsize *0.1))
         return population[i1], population[i2]
 
     def SUS(self, population, fitness_array, k=10):
