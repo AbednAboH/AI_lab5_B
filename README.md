@@ -33,6 +33,60 @@ CoEvolution-GA/
 │   ├── distribution/       # Stores weight distributions & analysis
 ```
 
+## Dependency Map
+
+```mermaid
+graph TD;
+    main.py -->|Coordinates Evolution| Genetic.py;
+    main.py -->|Utilizes Selection Methods| Selection_methods.py;
+    main.py -->|Employs Neural Networks| neural_network.py;
+    main.py -->|Generates Problem Sets| create_problem_sets.py;
+    main.py -->|Calculates Fitness| fitness_functions.py;
+    main.py -->|Manages Function Selection| function_selection.py;
+    main.py -->|Applies Mutations| mutations.py;
+    Genetic.py -->|Uses Settings| settings.py;
+    Selection_methods.py -->|References Settings| settings.py;
+    neural_network.py -->|Optimizes Training| settings.py;
+    create_problem_sets.py -->|Prepares Data| settings.py;
+    fitness_functions.py -->|Evaluates Model Performance| settings.py;
+    function_selection.py -->|Configures Functions| settings.py;
+    mutations.py -->|Applies Genetic Modifications| settings.py;
+```
+
+## How the Algorithm Works
+
+The algorithm follows a **co-evolutionary genetic process** to improve neural network performance:
+
+1. **Data Preprocessing**
+   - The dataset (`glass.data`) is loaded and split into **training** and **test** sets.
+   - The data is normalized before feeding it into the neural networks.
+
+2. **Initial Population Generation**
+   - A set of neural networks is **randomly initialized**, each with different:
+     - **Number of hidden layers**
+     - **Neurons per layer**
+     - **Activation functions** (ReLU, Sigmoid, Tanh, etc.)
+     - **Optimization methods** (SGD, Adam, etc.)
+     - **L2 regularization values**
+   
+3. **Fitness Evaluation**
+   - Each neural network is trained using **MLPClassifier**.
+   - Performance is evaluated using the **confusion matrix** and **F1-score**.
+   - The best networks are selected for reproduction.
+
+4. **Selection & Reproduction**
+   - **Tournament selection** is used to choose the best networks.
+   - **Crossover** is applied to create offspring by combining parent weights.
+   - **Mutation** modifies weights and hyperparameters randomly to explore new solutions.
+
+5. **Replacement & Iteration**
+   - The weakest networks are replaced with new offspring.
+   - The process repeats for a specified number of generations or until performance stabilizes.
+
+6. **Final Model Selection**
+   - The best-performing neural network is selected as the final model.
+   - The results are stored in the `outputs/` directory for further analysis.
+
 ## How to Run the Project
 
 ### Installation
@@ -56,6 +110,8 @@ python main.py
 
 ## Example Outputs
 
+The `outputs/` directory stores logs and trained network performance. Example:
+
 ```
 Final Best Neural Network:
 - Hidden Layers: (64, 32)
@@ -63,6 +119,14 @@ Final Best Neural Network:
 - Optimizer: Adam
 - F1 Score: 0.89
 ```
+
+## Conclusion
+
+This project successfully demonstrates the **co-evolution of neural networks** using genetic algorithms. By evolving different activation functions, layer structures, and optimizers, the model achieves optimized classification performance. Future work could explore:
+
+✅ **Parallelization** to speed up training  
+✅ **Caching fitness evaluations** to reduce redundant computations  
+✅ **Smart initialization** of network weights for faster convergence  
 
 ---
 
