@@ -1,4 +1,4 @@
-# CoEvolution-GA
+# CoEvolution-GA-Of-NeuralNetworks
 
 ## Project Overview
 
